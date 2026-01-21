@@ -31,9 +31,9 @@ function App() {
   </div>
 
 
-  <div className="w-full md:w-1/2">
+  <div className="w-full md:w-1/2 text-white ">
     <h2 className="font-bold text-3xl hover:opacity-80 transition shadow-lg py-2 shadow-pink-300 rounded-2xl ">Unlock Your Natural Glow 🍂</h2>
-    <p className="text-sm mt-5 text-justify leading-relaxed">
+    <p className="text-sm mt-5 text-justify leading-relaxed ">
       Lorem ipsum dolor, sit amet consectetur adipisicing elit. Eius in nesciunt accusamus aut, ea molestias corrupti aliquid earum dolores maiores blanditiis minus neque eligendi! Vitae corrupti quia mollitia excepturi consequuntur.
       Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis sit reiciendis fugiat quos sunt repudiandae, facere blanditiis expedita necessitatibus, recusandae cumque odio maxime in, at molestias enim error maiores cum.
       Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi magni reprehenderit quaerat modi dicta nostrum excepturi tenetur, beatae possimus, assumenda quae perferendis repudiandae ducimus corrupti ipsam voluptates velit? Possimus, numquam!
@@ -43,7 +43,7 @@ function App() {
   </div>
 </section>
 
-<section className="p-6 ">
+<section className="p-6 text-white">
   <h2 className="font-bold text-3xl hover:opacity-80 transition shadow-lg py-2 shadow-pink-300 rounded-2xl w-1/2">
       Galeryy 🌸
   </h2>
@@ -75,43 +75,43 @@ function App() {
 
 <section id="contact" className="py-20 bg-linear-65 from-pink-500 to-purple-500 text-gray-800">
   <div className="container mx-auto p-6 items-end flex flex-col gap-8">
-    <h2 className="font-bold text-3xl hover:opacity-80 transition shadow-lg py-2 shadow-pink-300 rounded-2xl w-1/2">
+    <h2 className="font-bold text-3xl hover:opacity-80 transition shadow-lg py-2 shadow-pink-300 rounded-2xl w-1/2 text-white">
       Contact Us
     </h2>
   </div>
   <div className="container mx-auto px-6">
     <div className="flex flex-col md:flex-row gap-16 items-center">
       
-      {/* Kolom Kiri: Info Kontak */}
+  
       <div className="w-full md:w-1/2">
-        <h2 className="text-4xl font-bold text-pink-600 mb-6 hover:text-white hover:scale-100">Get in Touch ✨</h2>
-        <p className="text-lg mb-8 opacity-80  hover:text-white hover:scale-100">
+        <h2 className="text-4xl font-bold mb-6 text-white hover:scale-100">Get in Touch ✨</h2>
+        <p className="text-lg mb-8 opacity-80 text-white hover:scale-100">
           Punya pertanyaan tentang produk atau ingin konsultasi kulit gratis? Jangan ragu untuk menghubungi kami.
         </p>
         
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
             <div className="bg-pink-100 p-3 rounded-full text-pink-600 ">📍</div>
-            <p className="font-medium  hover:text-white hover:scale-100">Jl. Kecantikan No. 123, Jakarta Selatan</p>
+            <p className="font-medium  hover:text-white hover:scale-100 text-white">Jl. Kecantikan No. 123, Jakarta Selatan</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="bg-pink-100 p-3 rounded-full text-pink-600">📧</div>
-            <p className="font-medium hover:text-white hover:scale-100" >hello@beautyglow.com</p>
+            <p className="font-medium hover:text-white hover:scale-100 text-white" >hello@beautyglow.com</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="bg-green-100 p-3 rounded-full text-green-600">💬</div>
-            <p className="font-medium  hover:text-white hover:scale-100">+62 812-3456-7890 (WhatsApp Only)</p>
+            <p className="font-medium  hover:text-white hover:scale-100 text-white">+62 812-3456-7890 (WhatsApp Only)</p>
           </div>
         </div>
 
-        {/* Social Media */}
+
         <div className="mt-10 flex space-x-4">
           <a href="#" className="w-10 h-10 bg-pink-500 text-white rounded-full flex items-center justify-center hover:bg-pink-600 transition">IG</a>
           <a href="#" className="w-10 h-10 bg-pink-500 text-white rounded-full flex items-center justify-center hover:bg-pink-600 transition">TIK</a>
         </div>
       </div>
 
-      {/* Kolom Kanan: Form Pesan */}
+     
       <div className="w-full md:w-1/2 bg-gray-50 p-8 rounded-3xl shadow-xl border border-gray-100">
         <form className="space-y-4">
           <div>
