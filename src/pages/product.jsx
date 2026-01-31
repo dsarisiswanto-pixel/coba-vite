@@ -17,6 +17,9 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
   const [products, setProducts] = useState([
     {
       id: 1,
@@ -51,8 +54,20 @@ export default function Dashboard() {
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filtered.slice(startIndex, endIndex);
+
   const resetForm = () => {
-    setForm({ name: "", category: "", price: "", stock: "", images: [], date: "" });
+    setForm({
+      name: "",
+      category: "",
+      price: "",
+      stock: "",
+      images: [],
+      date: "",
+    });
     setEditId(null);
   };
 
@@ -63,6 +78,7 @@ export default function Dashboard() {
 
   const handleSave = () => {
     if (!form.name || !form.category) return;
+
     if (editId) {
       setProducts(
         products.map((p) =>
@@ -82,20 +98,15 @@ export default function Dashboard() {
         },
       ]);
     }
+
+    setCurrentPage(1);
     resetForm();
     setShowModal(false);
   };
 
   const handleEdit = (item) => {
     setEditId(item.id);
-    setForm({
-      name: item.name,
-      category: item.category,
-      price: item.price,
-      stock: item.stock,
-      images: item.images,
-      date: item.date,
-    });
+    setForm(item);
     setShowModal(true);
   };
 
@@ -105,37 +116,39 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-r from-pink-100 to-pink-50 shadow-lg transform transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
-      >
-        <div className="flex flex-col h-full p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-pink-500 font-bold text-2xl">🔐 Admin</h2>
-            <button onClick={() => setOpen(false)} className="md:hidden">
-              <FiX size={20} />
-            </button>
-          </div>
 
-          <ul className="space-y-3 text-gray-600">
-            <li className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3">
-              <FiHome /> <a href="/dashboard">Dashboard</a>
-            </li>
-            <li className="bg-pink-100 text-pink-500 px-4 py-2 rounded-lg flex items-center gap-3">
-              <FiBox /> <a href="/product">Products</a>
-            </li>
-            <li className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3">
-              <FiShoppingCart /> <a href="/order">Orders</a>
-            </li>
-          </ul>
+        <div
+            className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-r from-pink-100 to-pink-50 shadow-lg transform transition-transform duration-300
+            ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+            >
+            <div className="flex flex-col h-full p-4">
+                <div className="flex items-center justify-between mb-6">
+                <h2 className="text-pink-500 font-bold text-2xl">🔐 Admin</h2>
+                <button onClick={() => setOpen(false)} className="md:hidden">
+                    <FiX size={20} />
+                </button>
+                </div>
 
-          <div className="pt-4">
-            <div className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3 text-gray-600">
-              <FiLogOut /> Logout
+                <ul className="space-y-3 text-gray-600    ">
+                <li className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3">
+                    <FiHome /> <a href="http:/dashboard"> Dashboard </a>
+                </li>
+                <li className=" bg-pink-100 text-pink-500 px-4 py-2 rounded-lg flex items-center gap-3">
+                    <FiBox /><a href="http:/product"> Products </a>
+                </li>
+                <li className="hover:bg-pink-50  px-4 py-2 rounded-lg flex items-center gap-3">
+                    <FiShoppingCart /> <a href="http:/order">Orders</a> 
+                </li>
+                </ul>
+
+                <div className="pt-4">
+                <div className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3 text-gray-600">
+                    <FiLogOut /> Logout
+                </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
+            </div>
+
 
       {open && (
         <div
@@ -144,30 +157,37 @@ export default function Dashboard() {
         />
       )}
 
-      <main className="flex-1 p-4 md:p-8 md:ml-64 space-y-6">
+
+      <main className="flex-1 md:ml-64 p-4 md:p-8 space-y-6">
         <button
-          onClick={() => setOpen(true)}
           className="md:hidden bg-pink-500 text-white p-2 rounded-lg"
+          onClick={() => setOpen(true)}
         >
           <FiMenu />
         </button>
 
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Products</h1>
+          <h1 className="text-2xl font-bold">Products</h1>
           <p className="text-gray-400">Manage your product</p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 md:justify-between bg-white p-5 rounded-2xl shadow-sm">
+        <div className="flex flex-col md:flex-row gap-4 justify-between bg-white p-5 rounded-2xl shadow-sm">
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search product..."
-            className="border rounded-xl px-4 py-2 w-full md:w-72 focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="border rounded-xl px-4 py-2 w-full md:w-72"
           />
 
           <button
-            onClick={() => { resetForm(); setShowModal(true); }}
-            className="bg-pink-500 hover:bg-pink-600 transition text-white px-5 py-2 rounded-xl flex gap-2 items-center shadow"
+            onClick={() => {
+              resetForm();
+              setShowModal(true);
+            }}
+            className="bg-pink-500 text-white px-5 py-2 rounded-xl flex items-center gap-2"
           >
             <FiPlus /> Add Product
           </button>
@@ -176,7 +196,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
             <thead className="bg-pink-50">
-              <tr className="text-left text-gray-600 text-xs uppercase tracking-wide">
+              <tr>
                 <th className="p-4">Date</th>
                 <th className="p-4">Product</th>
                 <th className="p-4">Category</th>
@@ -188,56 +208,24 @@ export default function Dashboard() {
             </thead>
 
             <tbody>
-              {filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-pink-50/40 transition">
-                  <td className="p-4 text-sm text-gray-600">
-                    {new Date(item.date).toLocaleDateString("id-ID", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-
+              {paginatedProducts.map((item) => (
+                <tr key={item.id} className="hover:bg-pink-50">
+                  <td className="p-4">{item.date}</td>
                   <td className="p-4 flex items-center gap-3">
-                    <img
-                      src={Array.isArray(item.images) ? item.images[0] : item.images}
-                      className="w-10 h-10 rounded-xl object-cover border"
-                    />
-                    <span className="font-medium text-gray-700">{item.name}</span>
+                    <img src={item.images[0]} className="w-10 h-10 rounded-xl" />
+                    {item.name}
                   </td>
-
                   <td className="p-4">{item.category}</td>
                   <td className="p-4">Rp {item.price.toLocaleString()}</td>
                   <td className="p-4">{item.stock}</td>
                   <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        item.stock > 50
-                          ? "bg-green-100 text-green-700"
-                          : item.stock > 0
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {item.stock > 50
-                        ? "Available"
-                        : item.stock > 0
-                        ? "Low Stock"
-                        : "Out of Stock"}
-                    </span>
+                    {item.stock > 50 ? "Available" : "Low Stock"}
                   </td>
-
-                  <td className="p-4 flex justify-center gap-3">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="p-2 rounded-lg hover:bg-blue-50 text-blue-500 transition"
-                    >
+                  <td className="p-4 flex justify-center gap-2">
+                    <button onClick={() => handleEdit(item)} className="text-blue-500">
                       <FiEdit />
                     </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-2 rounded-lg hover:bg-red-50 text-red-500 transition"
-                    >
+                    <button onClick={() => handleDelete(item.id)} className="text-red-500">
                       <FiTrash />
                     </button>
                   </td>
@@ -245,13 +233,68 @@ export default function Dashboard() {
               ))}
             </tbody>
           </table>
+
+          <div className="flex flex-wrap gap-4 justify-between items-center p-4 border-t text-sm">
+            <span className="text-gray-500">
+              Showing {startIndex + 1} to{" "}
+              {Math.min(endIndex, filtered.length)} of {filtered.length} entries
+            </span>
+
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className={`px-3 py-1 border rounded-lg ${
+                  currentPage === 1
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "hover:bg-pink-50"
+                }`}
+              >
+                Prev
+              </button>
+
+              <button className="px-3 py-1 rounded-lg bg-pink-500 text-white">
+                {currentPage}
+              </button>
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className={`px-3 py-1 border rounded-lg ${
+                  currentPage === totalPages
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "hover:bg-pink-50"
+                }`}
+              >
+                Next
+              </button>
+
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="ml-3 border px-2 py-1 rounded-lg"
+              >
+                {[5, 10, 15, 20, 25, 50, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+
+              <span className="text-gray-500">per page</span>
+            </div>
+          </div>
         </div>
       </main>
 
+   
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl">
-            <h2 className="text-xl font-bold text-gray-800">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md p-6 rounded-2xl space-y-4">
+            <h2 className="text-xl font-bold">
               {editId ? "Edit Product" : "Add Product"}
             </h2>
 
@@ -259,71 +302,50 @@ export default function Dashboard() {
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border px-4 py-2 rounded-xl"
             />
             <input
-              type="text"
               placeholder="Product Name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border px-4 py-2 rounded-xl"
             />
             <input
-              type="text"
               placeholder="Category"
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border px-4 py-2 rounded-xl"
             />
             <input
               type="number"
               placeholder="Price"
               value={form.price}
               onChange={(e) => setForm({ ...form, price: e.target.value })}
-              className="w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border px-4 py-2 rounded-xl"
             />
             <input
               type="number"
               placeholder="Stock"
               value={form.stock}
               onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              className="w-full border rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border px-4 py-2 rounded-xl"
             />
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-600">Product Images</label>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImages}
-                className="w-full text-sm"
-              />
-              {form.images && form.images.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                  {form.images.map((img, i) => (
-                    <img
-                      key={i}
-                      src={
-                        typeof img === "string" ? img : URL.createObjectURL(img)
-                      }
-                      className="w-16 h-16 rounded-lg object-cover border"
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            <input type="file" multiple onChange={handleImages} />
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-3">
               <button
-                onClick={() => { setShowModal(false); resetForm(); }}
-                className="px-4 py-2 rounded-xl border hover:bg-gray-50"
+                onClick={() => {
+                  setShowModal(false);
+                  resetForm();
+                }}
+                className="border px-4 py-2 rounded-xl"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="bg-pink-500 hover:bg-pink-600 transition text-white px-5 py-2 rounded-xl shadow"
+                className="bg-pink-500 text-white px-5 py-2 rounded-xl"
               >
                 Save
               </button>

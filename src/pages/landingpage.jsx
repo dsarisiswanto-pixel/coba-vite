@@ -4,6 +4,7 @@ function Landingpage(){
       const [open, setOpen] = useState(false);
       const [active, setActive] = useState("home");
       const revealRefs = useRef([]);
+      
     
       useEffect(() => {
         const observer = new IntersectionObserver(
@@ -119,6 +120,45 @@ function Landingpage(){
           ))}
         </div>
       </section>
+      
+      <section id="portfolio" className="px-6 md:px-12 py-20 bg-gray-100">
+
+        <h2 className="text-3xl font-bold text-center text-pink-700 mb-12">
+          Featured Products
+        </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+
+            {[
+            {name:"Facial Treatment",img:"/1-removebg-preview.png"},
+            {name:"Skin Care Set",img:"/2-removebg-preview.png"},
+            {name:"Glow Package",img:"/3-removebg-preview.png"},
+            {name:"Acne Care",img:"/1-removebg-preview.png"},
+            {name:"Brightening",img:"/2-removebg-preview.png"},
+            {name:"Premium Glow",img:"/3-removebg-preview.png"},
+            ].map((item,i)=>(
+          <div
+            key={i}
+            className="bg-white rounded-xl shadow-xl overflow-hidden hover:scale-105 transition"
+            >
+
+            <img src={item.img} className="w-full h-48 object-contain p-4"/>
+
+            <div className="p-5 text-center">
+              <h3 className="font-bold text-lg">{item.name}</h3>
+
+              <button className="mt-4 border border-pink-500 text-pink-500 px-4 py-2 rounded hover:bg-pink-500 hover:text-white transition">
+              <a href="http:/detail"> Detail </a>
+                </button>
+            </div>
+
+          </div>
+          ))}
+
+    </div>
+
+    </section>
+
 
       <section
         id="contact"

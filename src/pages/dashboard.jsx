@@ -19,6 +19,8 @@ import {
   Legend,
 } from "recharts";
 
+
+
 const data = [
   { name: "Jan", revenue: 400, orders: 523 },
   { name: "Feb", revenue: 700, orders: 543 },
@@ -35,15 +37,15 @@ const data = [
 ];
 
 const orders = [
-  { id: "#001", date: "2026-01-26", customer: "Della", product: "FaceWash", total: "Rp 40.000", status: "Compeleted" },
+  { id: "#001", date: "2026-01-26", customer: "Della", product: "FaceWash", total: "Rp 40.000", status: "Completed" },
   { id: "#002", date: "2026-01-26", customer: "Adhisti", product: "Moisturaizer", total: "Rp 48.000", status: "Pending" },
   { id: "#003", date: "2026-01-26", customer: "Natalie", product: "Moisturaizer", total: "Rp 40.500", status: "Paid" },
-  { id: "#004", date: "2026-01-26", customer: "Manda", product: "Serum", total: "Rp 41.000", status: "Compeleted" },
-  { id: "#005", date: "2026-01-26", customer: "Andrian", product: "Liblam", total: "Rp 30.000", status: "Compeleted" },
+  { id: "#004", date: "2026-01-26", customer: "Manda", product: "Serum", total: "Rp 41.000", status: "Completed" },
+  { id: "#005", date: "2026-01-26", customer: "Andrian", product: "Liblam", total: "Rp 30.000", status: "Completed" },
   { id: "#006", date: "2026-01-26", customer: "Daffa", product: "Cleanser", total: "Rp 20.000", status: "Pending" },
-  { id: "#007", date: "2026-01-26", customer: "Enggar", product: "Facewash", total: "Rp 50.000", status: "Compeleted" },
+  { id: "#007", date: "2026-01-26", customer: "Enggar", product: "Facewash", total: "Rp 50.000", status: "Completed" },
   { id: "#008", date: "2026-01-26", customer: "Eric", product: "Moisturaizer", total: "Rp 60.000", status: "Pending" },
-  { id: "#009", date: "2026-01-26", customer: "Cindy", product: "BodySerum", total: "Rp 70.000", status: "Compeleted" },
+  { id: "#009", date: "2026-01-26", customer: "Cindy", product: "BodySerum", total: "Rp 70.000", status: "Completed" },
   { id: "#010", date: "2026-01-26", customer: "Ebit", product: "FaceWash", total: "Rp 30.000", status: "Paid" },
 ];
 
@@ -73,7 +75,7 @@ function Dashboard() {
               <FiBox /><a href="http:/product"> Products </a>
             </li>
             <li className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3">
-              <FiShoppingCart /> <a href="http:order">Orders</a> 
+              <FiShoppingCart /> <a href="http:/order">Orders</a> 
             </li>
           </ul>
 
@@ -197,7 +199,7 @@ function Dashboard() {
                     <td>
                         <span
                         className={`px-3 py-1 rounded-full text-xs ${
-                            item.status === "Compeleted"
+                            item.status === "Completed"
                             ? "bg-green-100 text-green-600"
                             : item.status === "Pending"
                             ? "bg-yellow-100 text-yellow-600"
@@ -211,7 +213,7 @@ function Dashboard() {
                 ))}
                 </tbody>
             </table>
-            </div>
+          </div>
       </div>
     </div>
   );
