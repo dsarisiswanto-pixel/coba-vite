@@ -1,9 +1,30 @@
 import { useEffect, useRef, useState } from "react";
+import api from "../api/api";
+import { Link } from "react-router-dom";
+
 
 function Landingpage(){
       const [open, setOpen] = useState(false);
       const [active, setActive] = useState("home");
       const revealRefs = useRef([]);
+      const [featured, setFeatured] = useState([]);
+      const [current, setCurrent] = useState(0);
+
+const itemsPerSlide = 3;
+const totalSlides = Math.ceil(featured.length / itemsPerSlide);
+
+const nextSlide = () => {
+  setCurrent((prev) => (prev + 1) % totalSlides);
+};
+
+const prevSlide = () => {
+  setCurrent((prev) => (prev - 1 + totalSlides) % totalSlides);
+};
+
+
+useEffect(() => { api.get("/featured-products").then((res) => { setFeatured(res.data.data); }); }, []); /* ================= AUTO CAROUSEL ================= */ useEffect(() => { const timer = setInterval(() => { setCurrent((p) => (p + 1) % totalSlides); }, 5000); return () => clearInterval(timer); }, [totalSlides]); /* ================= REVEAL ANIMATION ================= */ useEffect(() => { const observer = new IntersectionObserver( (entries) => { entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove("opacity-0", "translate-y-10"); e.target.classList.add("opacity-100", "translate-y-0"); } }); }, { threshold: 0.2 } ); revealRefs.current.forEach((el) => el && observer.observe(el)); return () => observer.disconnect(); }, []);
+  
+
       
     
       useEffect(() => {
@@ -120,44 +141,113 @@ function Landingpage(){
           ))}
         </div>
       </section>
-      
-      <section id="portfolio" className="px-6 md:px-12 py-20 bg-gray-100">
+<section
+  id="portfolio"
+  className="px-6 md:px-12 py-24 bg-gradient-to-b from-pink-50 to-gray-100 relative"
+>
+  <h2 className="text-4xl font-extrabold text-center text-pink-700 mb-14">
+    Completed Products
+  </h2>
 
-        <h2 className="text-3xl font-bold text-center text-pink-700 mb-12">
-          Featured Products
-        </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+  <div className="overflow-hidden relative">
+    <div
+      className="flex transition-transform duration-500 ease-in-out"
+      style={{ transform: `translateX(-${current * 100}%)` }}
+    >
+      {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+        <div
+          key={slideIndex}
+          className="min-w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 px-2"
+        >
+          {featured
+            .slice(
+              slideIndex * itemsPerSlide,
+              slideIndex * itemsPerSlide + itemsPerSlide
+            )
+            .map((item) => {
+              const product = item.product;
 
-            {[
-            {name:"Facial Treatment",img:"/1-removebg-preview.png"},
-            {name:"Skin Care Set",img:"/2-removebg-preview.png"},
-            {name:"Glow Package",img:"/3-removebg-preview.png"},
-            {name:"Acne Care",img:"/1-removebg-preview.png"},
-            {name:"Brightening",img:"/2-removebg-preview.png"},
-            {name:"Premium Glow",img:"/3-removebg-preview.png"},
-            ].map((item,i)=>(
-          <div
-            key={i}
-            className="bg-white rounded-xl shadow-xl overflow-hidden hover:scale-105 transition"
-            >
+              return (
+                <div
+                  key={item.id}
+                  className="group relative bg-white/80 backdrop-blur-xl
+                  rounded-3xl shadow-lg ring-1 ring-pink-200/50
+                  overflow-hidden transition hover:-translate-y-2"
+                >
+               
+                  <span className="absolute top-4 left-4 bg-gradient-to-r from-pink-500 to-rose-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+                    Featured
+                  </span>
 
-            <img src={item.img} className="w-full h-48 object-contain p-4"/>
+                  <div className="overflow-hidden">
+                    <img
+                      src={
+                        product?.image
+                          ? `http://127.0.0.1:8000/storage/${product.image}`
+                          : "https://via.placeholder.com/300x200?text=No+Image"
+                      }
+                      alt={product?.name || "Product"}
+                      className="w-full h-52 object-contain p-6 transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
 
-            <div className="p-5 text-center">
-              <h3 className="font-bold text-lg">{item.name}</h3>
+                  <div className="p-6 text-center">
+                    <h3 className="font-bold text-xl text-gray-800">
+                      {product?.name || "Unnamed Product"}
+                    </h3>
 
-              <button className="mt-4 border border-pink-500 text-pink-500 px-4 py-2 rounded hover:bg-pink-500 hover:text-white transition">
-              <a href="http:/detail"> Detail </a>
-                </button>
-            </div>
+                    <p className="text-lg font-semibold text-pink-600 mt-1">
+                      Rp{" "}
+                      {Number(
+                        item.total ?? product?.price ?? 0
+                      ).toLocaleString("id-ID")}
+                    </p>
 
-          </div>
-          ))}
-
+                    <Link
+                      to="/detail"
+                      className="inline-block mt-6 px-6 py-3 rounded-xl
+                      bg-gradient-to-r from-pink-500 to-rose-400
+                      text-white font-medium shadow-lg
+                      hover:scale-105 transition"
+                    >
+                      Lihat Detail
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      ))}
     </div>
 
-    </section>
+    <button
+      onClick={prevSlide}
+      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white shadow-lg p-3 rounded-full hover:scale-110 transition"
+    >
+      ‹
+    </button>
+
+    <button
+      onClick={nextSlide}
+      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white shadow-lg p-3 rounded-full hover:scale-110 transition"
+    >
+      ›
+    </button>
+  </div>
+
+  <Link
+    to="/detail"
+    className="mt-8 mx-auto w-fit flex items-center justify-center
+    bg-gradient-to-r from-pink-400 to-pink-500 text-white font-semibold
+    px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition"
+  >
+    Lihat Semua Detail
+  </Link>
+</section>
+
+
+
 
 
       <section

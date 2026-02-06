@@ -1,243 +1,458 @@
-    import { useState } from "react";
-    import {
-    FiHome,
-    FiBox,
-    FiShoppingCart,
-    FiLogOut,
-    FiMenu,
-    FiX,
-    FiSearch,
-    } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import api from "../api/api";
+import {
+  FiHome,
+  FiBox,
+  FiShoppingCart,
+  FiLogOut,
+  FiMenu,
+  FiX,
+  FiPlus,
+  FiEdit,
+  FiTrash,
+} from "react-icons/fi";
 
-    export default function Order() {
-    const [open, setOpen] = useState(false);
-    const [search, setSearch] = useState("");
-    const [status, setStatus] = useState("All");
-    const [filter, setFilter] = useState("All");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+export default function Order() { 
+  const [open, setOpen] = useState(false);
 
-    const orders = [
-        { id: "#001", date: "2026-01-26", customer: "Della", product: "FaceWash", total: 40000, status: "Pending" },
-        { id: "#002", date: "2026-01-26", customer: "Adhisti", product: "Moisturizer", total: 48000, status: "Paid" },
-        { id: "#003", date: "2026-01-26", customer: "Natalie", product: "Serum", total: 40500, status: "Completed" },
-        { id: "#004", date: "2026-01-26", customer: "Manda", product: "Serum", total: 41000, status: "Completed" },
-        { id: "#005", date: "2026-01-26", customer: "Andrian", product: "Lipbalm", total: 30000, status: "Pending" },
-        { id: "#006", date: "2026-01-26", customer: "Daffa", product: "Cleanser", total: 20000, status: "Paid" },
-        { id: "#007", date: "2026-01-26", customer: "Enggar", product: "Facewash", total: 50000, status: "Completed" },
-        { id: "#008", date: "2026-01-26", customer: "Eric", product: "Moisturizer", total: 50000, status: "Completed" },
-        { id: "#009", date: "2026-01-26", customer: "Cindy", product: "BodySerum", total: 70000, status: "Pending" },
-        { id: "#010", date: "2026-01-26", customer: "Ebit", product: "FaceWash", total: 30000, status: "Paid" },
-    ];
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
 
-    const filtered = orders.filter((o) => {
-        const matchSearch =
-        o.customer.toLowerCase().includes(search.toLowerCase()) ||
-        o.product.toLowerCase().includes(search.toLowerCase());
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
 
-        const matchStatus = status === "All" || o.status === status;
-        const matchFilter = filter === "All" || o.product === filter;
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState(null);
 
-        return matchSearch && matchStatus && matchFilter;
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [notif, setNotif] = useState({ show: false, message: "" });
+
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+
+  const [form, setForm] = useState({
+    user_id: "",
+    product_id: "",
+    total: "",
+    status: "Pending",
+  });
+
+
+useEffect(() => {
+ const fetchProducts = async () => {
+  try {
+    const res = await api.get("/products-all"); // ✅ SEMUA PRODUK
+    setProducts(res.data || []);
+  } catch {
+    setProducts([]);
+  }
+};
+
+
+  const fetchOrders = async () => {
+    try {
+      const res = await api.get("/orders", {
+        params: {
+          page,
+          status: statusFilter !== "All" ? statusFilter : undefined,
+        },
+      });
+
+      setOrders(res.data?.data || []);
+
+      setLastPage(
+        res.data?.meta?.last_page ||
+        res.data?.last_page ||
+        1
+      );
+    } catch {
+      setOrders([]);
+    }
+  };
+
+  fetchProducts();
+  fetchOrders();
+}, [page, statusFilter]);
+
+  const handleSave = async () => {
+    try {
+      if (!form.user_id || !form.product_id || !form.total) {
+        setNotif({ show: true, message: "Semua field wajib diisi " });
+        return;
+      }
+
+      if (editId) {
+        await api.put(`/orders/${editId}`, { status: form.status });
+        setNotif({ show: true, message: "Order berhasil diperbarui ✅" });
+      } else {
+        await api.post("/orders", form);
+        setNotif({ show: true, message: "Order berhasil ditambahkan 🎉" });
+      }
+
+      const res = await api.get("/orders", { params: { page } });
+
+const last =
+  res.data?.meta?.last_page ||
+  res.data?.last_page ||
+  1;
+
+setOrders(res.data?.data || []);
+setLastPage(last);
+setPage(last);
+
+
+      setShowModal(false);
+      setEditId(null);
+      setForm({ user_id: "", product_id: "", total: "", status: "Pending" });
+
+    } catch {
+      setNotif({ show: true, message: "Terjadi kesalahan" });
+    }
+  };
+
+  const handleEdit = (o) => {
+    setEditId(o.id);
+    setForm({
+      user_id: o.user_id,
+      product_id: o.product_id,
+      total: o.total,
+      status: o.status,
     });
+    setShowModal(true);
+  };
 
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedOrders = filtered.slice(startIndex, endIndex);
+  
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/orders/${confirmDelete}`);
+      setConfirmDelete(null);
 
-    const statusStyle = {
-        Pending: "bg-yellow-100 text-yellow-700",
-        Paid: "bg-blue-100 text-blue-700",
-        Completed: "bg-green-100 text-green-700",
-    };
+      const res = await api.get("/orders", { params: { page } });
 
-    return (
-        <div className="flex min-h-screen bg-gray-50">
-        
-        <div
-            className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-r from-pink-100 to-pink-50 shadow-lg transform transition-transform duration-300
+      setOrders(res.data?.data || []);
+      setLastPage(
+        res.data?.meta?.last_page ||
+        res.data?.last_page ||
+        1
+      );
+
+      setNotif({ show: true, message: "Order berhasil dihapus 🗑️" });
+    } catch {
+      setNotif({ show: true, message: "Gagal menghapus order ❌" });
+    }
+  };
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogout = () => {
+  localStorage.removeItem("token");
+
+  localStorage.setItem("logout_success", "true");
+
+  window.location.href = "/login";
+};
+
+
+
+ const filteredOrders = orders.filter((o) => {
+  const matchSearch = search
+    ? o.user?.name?.toLowerCase().includes(search.toLowerCase())
+    : true;
+
+  const matchCategory =
+    categoryFilter === "All"
+      ? true
+      : o.product?.category?.toLowerCase() === categoryFilter.toLowerCase();
+
+  return matchSearch && matchCategory;
+  
+});
+
+
+  const statusStyle = {
+    Pending: "bg-yellow-100 text-yellow-700",
+    Paid: "bg-blue-100 text-blue-700",
+    Completed: "bg-green-100 text-green-700",
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+
+          <div
+            className={`fixed inset-y-0 left-0 z-40 w-64 bg-pink-100 shadow
             ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
-            >
-            <div className="flex flex-col h-full p-4">
-                <div className="flex items-center justify-between mb-6">
-                <h2 className="text-pink-500 font-bold text-2xl">🔐 Admin</h2>
-                <button onClick={() => setOpen(false)} className="md:hidden">
-                    <FiX size={20} />
-                </button>
-                </div>
+          >
+            <div className="p-4">
+              <h2 className="text-3xl font-bold text-pink-500 mb-6">🔐 Admin</h2>
 
-                <ul className="space-y-3 text-gray-600    ">
-                <li className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3">
-                    <FiHome /> <a href="http:/dashboard"> Dashboard </a>
+              <ul className="space-y-3 text-gray-600">
+                <li>
+                  <a
+                    href="/dashboard"
+                    className="flex gap-3 px-4 py-2 rounded-lg hover:bg-pink-50"
+                  >
+                    <FiHome /> Dashboard
+                  </a>
                 </li>
-                <li className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3">
-                    <FiBox /><a href="http:/product"> Products </a>
-                </li>
-                <li className=" bg-pink-100 text-pink-500 px-4 py-2 rounded-lg flex items-center gap-3">
-                    <FiShoppingCart /> <a href="http:/order">Orders</a> 
-                </li>
-                </ul>
 
-                <div className="pt-4">
-                <div className="hover:bg-pink-50 px-4 py-2 rounded-lg flex items-center gap-3 text-gray-600">
+                <li>
+                  <a
+                    href="/product"
+                    className="flex gap-3 px-4 py-2 rounded-lg hover:bg-pink-50"
+                  >
+                    <FiBox /> Products
+                  </a>
+                </li>
+
+                <li>
+                  <a
+                    href="/order"
+                    className="flex gap-3 px-4 py-2 rounded-lg bg-pink-200 text-pink-600"
+                  >
+                    <FiShoppingCart /> Orders
+                  </a>
+                </li>
+
+                <li>
+                <button
+            onClick={() => setShowLogoutModal(true)}
+            className="flex gap-3 px-4 py-2 rounded-lg hover:bg-pink-50"
+          >
+
                     <FiLogOut /> Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+      </div>
+
+      <main className="flex-1 md:ml-64 p-6 space-y-6">
+        <button onClick={() => setOpen(true)} className="md:hidden bg-pink-500 text-white p-2 rounded">
+          <FiMenu />
+        </button>
+
+        <h1 className="text-3xl font-bold">Orders</h1>
+        <div className="flex flex-wrap gap-3">
+          <input
+            placeholder="Search customer..."
+            className="border px-4 py-2 rounded-xl"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border px-3 py-2 rounded-xl"
+          >
+            <option value="All">All Status</option>
+            <option>Pending</option>
+            <option>Paid</option>
+            <option>Completed</option>
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="border px-3 py-2 rounded-xl"
+          >
+            <option value="All">All Category</option>
+            <option>Skincare</option>
+            <option>MakeUp</option>
+            <option>BodyCare</option>
+          </select>
+
+          <button
+            onClick={() => {
+              setEditId(null);
+              setForm({ user_id: "", product_id: "", total: "", status: "Pending" });
+              setShowModal(true);
+            }}
+            className="bg-pink-500 text-white px-4 py-2 rounded-xl flex gap-2"
+          >
+            <FiPlus /> Add Order
+          </button>
+        </div>
+
+
+        <div className="bg-white rounded-xl shadow overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-pink-50">
+              <tr>
+                <th className="px-6 py-4 text-left">Date</th>
+                <th className="px-6 py-4">Customer</th>
+                <th className="px-6 py-4">Product</th>
+                <th className="px-6 py-4">Category</th>
+                <th className="px-6 py-4 text-right">Total</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-center">Action</th>
+              </tr>
+            </thead>
+
+            <tbody >
+              {filteredOrders.map((o) => (
+                <tr key={o.id} className="odd:bg-white even:bg-pink-50 hover:bg-pink-100 transition">
+                  <td className="px-6 py-4">{o.date || "-"}</td>
+                  <td className="px-6 py-4">{o.user?.name || "-"}</td>
+                  <td className="px-6 py-4">{o.product?.name || "-"}</td>
+                  <td className="px-6 py-4">{o.product?.category || "-"}</td>
+                  <td className="px-6 py-4 text-right font-semibold">
+                    Rp {Number(o.total || 0).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-xs ${statusStyle[o.status]}`}>
+                      {o.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex justify-center gap-3">
+                      <button onClick={() => handleEdit(o)} className="text-blue-500">
+                        <FiEdit />
+                      </button>
+                      <button onClick={() => setConfirmDelete(o.id)} className="text-red-500">
+                        <FiTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex justify-end items-center gap-4 px-6 py-4 border-t">
+              <span className="text-sm text-gray-500">
+                Page <b>{page}</b> / {lastPage}
+              </span>
+
+              <div className="flex gap-2">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                  className="px-3 py-1 border rounded disabled:opacity-40"
+                >
+                  Prev
+                </button>
+
+                <button
+                  disabled={page === lastPage}
+                  onClick={() => setPage(page + 1)}
+                  className="px-3 py-1 border rounded disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+            {showLogoutModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 animate-scale">
+                  
+                  <h2 className="text-xl font-bold text-pink-500 mb-3">
+                    Logout
+                  </h2>
+
+                  <p className="text-gray-500 mb-6">
+                    Apakah kamu yakin ingin logout?
+                  </p>
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowLogoutModal(false)}
+                      className="px-4 py-2 rounded-lg border hover:bg-gray-50"
+                    >
+                      Batal
+                    </button>
+
+                    <button
+                      onClick={handleLogout}
+                      className="px-4 py-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600"
+                    >
+                      Ya, Logout
+                    </button>
+                  </div>
                 </div>
-                </div>
-            </div>
-            </div>
+              </div>
+            )}
+        </div>
+      </main>
 
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md space-y-3">
+            <h2 className="text-lg font-semibold text-center">
+              {editId ? "Edit Order" : "Tambah Order"}
+            </h2>
 
-        <main className="flex-1 md:ml-64 p-4 md:p-8 space-y-6">
-            <button
-            onClick={() => setOpen(true)}
-            className="md:hidden bg-pink-500 text-white p-2 rounded-lg"
-            >
-            <FiMenu />
-            </button>
-
-            <div>
-            <h1 className="text-2xl font-bold">Orders</h1>
-            <p className="text-gray-400">Manage your customer orders</p>
-            </div>
-
-            
-            <div className="flex flex-wrap gap-3 items-center bg-white p-4 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 border px-3 py-2 rounded-xl w-64">
-                <FiSearch className="text-gray-400" />
-                <input
-                value={search}
-                onChange={(e) => {
-                    setSearch(e.target.value);
-                    setCurrentPage(1);
-                }}
-                placeholder="Search order"
-                className="outline-none w-full"
-                />
-            </div>
+            <input
+              placeholder="User ID"
+              className="border p-2 w-full rounded"
+              value={form.user_id}
+              onChange={(e) => setForm({ ...form, user_id: e.target.value })}
+            />
 
             <select
-                value={filter}
-                onChange={(e) => {
-                setFilter(e.target.value);
-                setCurrentPage(1);
-                }}
-                className="border px-4 py-2 rounded-xl text-sm"
+              className="border p-2 w-full rounded"
+              value={form.product_id}
+              onChange={(e) => setForm({ ...form, product_id: e.target.value })}
             >
-                <option value="All">All Products</option>
-                <option value="FaceWash">FaceWash</option>
-                <option value="Moisturizer">Moisturizer</option>
-                <option value="Serum">Serum</option>
-                <option value="Lipbalm">Lipbalm</option>
-                <option value="Cleanser">Cleanser</option>
-                <option value="BodySerum">BodySerum</option>
+              <option value="">Pilih Produk</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
             </select>
 
-            {["All", "Pending", "Paid", "Completed"].map((s) => (
-                <button
-                key={s}
-                onClick={() => {
-                    setStatus(s);
-                    setCurrentPage(1);
-                }}
-                className={`px-4 py-2 rounded-xl text-sm ${
-                    status === s
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-                >
-                {s}
-                </button>
-            ))}
+            <input
+              type="number"
+              placeholder="Total"
+              className="border p-2 w-full rounded"
+              value={form.total}
+              onChange={(e) => setForm({ ...form, total: e.target.value })}
+            />
+
+            <select
+              className="border p-2 w-full rounded"
+              value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value })}
+            >
+              <option>Pending</option>
+              <option>Paid</option>
+              <option>Completed</option>
+            </select>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={() => setShowModal(false)}>Cancel</button>
+              <button onClick={handleSave} className="bg-pink-500 text-white px-4 py-2 rounded">
+                Save
+              </button>
             </div>
-
-            <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
-            <table className="w-full min-w-[800px] text-sm">
-                <thead className="bg-gray-50 text-gray-500">
-                <tr>
-                    <th className="p-4 text-left">Order ID</th>
-                    <th className="p-4 text-left">Date</th>
-                    <th className="p-4 text-left">Customer</th>
-                    <th className="p-4 text-left">Product</th>
-                    <th className="p-4 text-left">Total</th>
-                    <th className="p-4 text-left">Status</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                {paginatedOrders.map((o) => (
-                    <tr key={o.id} className="border-t hover:bg-pink-50/40">
-                    <td className="p-4">{o.id}</td>
-                    <td className="p-4">{o.date}</td>
-                    <td className="p-4">{o.customer}</td>
-                    <td className="p-4">{o.product}</td>
-                    <td className="p-4">Rp {o.total.toLocaleString()}</td>
-                    <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyle[o.status]}`}>
-                        {o.status}
-                        </span>
-                    </td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-
-        
-            <div className="flex flex-wrap gap-4 justify-between items-center p-4 border-t text-sm">
-                <span className="text-gray-500">
-                Showing {startIndex + 1} to {Math.min(endIndex, filtered.length)} of{" "}
-                {filtered.length} entries
-                </span>
-
-                <div className="flex items-center gap-2">
-                <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                    className={`px-3 py-1 border rounded-lg ${
-                    currentPage === 1
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "hover:bg-pink-50"
-                    }`}
-                >
-                    Prev
-                </button>
-
-                <button className="px-3 py-1 rounded-lg bg-pink-500 text-white">
-                    {currentPage}
-                </button>
-
-                <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                    className={`px-3 py-1 border rounded-lg ${
-                    currentPage === totalPages
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "hover:bg-pink-50"
-                    }`}
-                >
-                    Next
-                </button>
-
-                <select
-                    value={itemsPerPage}
-                    onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                    }}
-                    className="ml-3 border px-2 py-1 rounded-lg"
-                >
-                    {[5, 10, 15, 20, 25, 50, 100].map((n) => (
-                    <option key={n} value={n}>
-                        {n}
-                    </option>
-                    ))}
-                </select>
-
-                <span className="text-gray-500">per page</span>
-                </div>
-            </div>
-            </div>
-        </main>
+          </div>
         </div>
-    );
-    }
+      )}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl text-center space-y-4">
+            <p>Yakin ingin menghapus order?</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setConfirmDelete(null)}>Batal</button>
+              <button onClick={handleDelete} className="bg-red-500 text-white px-4 py-2 rounded">
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notif.show && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white px-6 py-4 rounded-xl text-center space-y-3">
+            <p>{notif.message}</p>
+            <button
+              onClick={() => setNotif({ show: false, message: "" })}
+              className="bg-pink-500 text-white px-4 py-1 rounded"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
